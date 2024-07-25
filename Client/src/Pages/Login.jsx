@@ -35,13 +35,13 @@ const Login = () => {
         toast.success('Login successful!');
         setTimeout(() => {
           navigate('/');
-        }, 2000);
+        }, 4000);
       } else {
         toast.error(`Login failed: ${result.message || 'Unknown error'}`);
       }
     } catch (error) {
-      toast.error('Error: Unable to login');
-      console.error('Error:', error);
+      console.error('Detailed error:', error);
+    toast.error(`Error: Unable to login. ${error.message}`);
     }
   };
 

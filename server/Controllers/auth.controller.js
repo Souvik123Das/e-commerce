@@ -39,4 +39,26 @@ const register = async(req,res) => {
     }
 };
 
-module.exports = {home , register };
+const login = async(req,res) => {
+    try {
+        const {email ,password } =req.body;
+
+        const userExist =await User.findOne({email});
+        console.log(userExist);
+        if(!userExist){
+            return res.status(400).json({message : "Invalid Credentials"});
+        }
+        const user =await bcrypt.compare(password,userExist.password);
+
+        if(user){
+            res.status(200).json({msg : "Login Successful ", token : await userExist.genaratetoken(), userId:userExist._id.toString(), });
+        }else{
+            res.status(401).json({message:"Invalid Email or Password"});
+        }
+
+    } catch (error) {
+        res.status(500).json("internal server error");
+    }
+}
+
+module.exports = {home , register,login };

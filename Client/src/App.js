@@ -6,7 +6,8 @@ import Shop from './Pages/Shop'
 
 import ShopCategory from './Pages/ShopCategory';
 import Product from './Pages/Product';
-import LoginSignup from './Pages/LoginSignup';
+import Signup from './Pages/Signup';
+import Login from './Pages/Login';
 import Cart from './Pages/Cart';
 import Footer from './Components/Footer/Footer';
 import men_banner from './Components/Assets/banner_mens.png'
@@ -27,8 +28,9 @@ function App() {
         <Route path=':productId' element={<Product/>}/>
       </Route>
       
-      <Route path='/Login' element={<LoginSignup/>}/>
+      <Route path='/SignUp' element={<Signup/>}/>
       <Route path='/cart' element={<Cart/>}/>
+      <Route path='/Login' element={<Login/>}/>
       
       </Routes>
       <Footer/>

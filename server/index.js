@@ -10,9 +10,9 @@ app.use(express.json());
 
 app.use("/",router);
 
-// app.get("/",(req ,res) => {
-//     res.status(200).send("welcome");
-// });
+app.get("/",(req ,res) => {
+    res.status(200).send("welcome");
+});
 
 // app.get("/register",(req ,res) => {
 //     res.status(200).send("welcome to registration page");

@@ -21,7 +21,7 @@ const LoginSignup = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:5000/register', {
+      const response = await fetch('https://e-commerce-lake-five-53.vercel.app/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

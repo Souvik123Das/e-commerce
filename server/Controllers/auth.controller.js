@@ -1,64 +1,111 @@
 const User = require("../models/user-model");
 const bcrypt = require("bcryptjs");
+const nodemailer = require("nodemailer");
+const crypto = require("crypto");
 
-
-
-const home = async(req,res) => {
-    try{
-        res
-        .status(200)
-        .send("welcome ");
-    } 
-    catch(error){
-        console.log(error);
-    }
+const home = async (req, res) => {
+  try {
+    res.status(200).send("welcome ");
+  } catch (error) {
+    console.log(error);
+  }
 };
 
-const register = async(req,res) => {
-    try{
-        console.log(req.body);
-        const {username,email,phone,password} = req.body;
-        
-        const userExist = await User.findOne({email});
+const otpStore = {};
+const OTP_EXPIRY_TIME = 5 * 60 * 1000; // 5 minutes in milliseconds
 
-        if(userExist){
-            console.log("User already exists");
-            return res.status(400).json({msg: "Email already exists"});
-        }
+const generateOtp = () => crypto.randomInt(100000, 999999); // 6-digit OTP
 
-        const saltRound =10;
-        const hash_password = await bcrypt.hash(password, saltRound);
-        
+const sendOtpEmail = async (email, otp) => {
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+  });
 
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: "Your OTP Code",
+    text: `Your OTP code is ${otp}. It is valid for 5 minutes.`,
+  };
 
-        const usercreated = await User.create({username,email,phone,password:hash_password });
-
-        res.status(200).json({msg : usercreated, token : await usercreated.genaratetoken(), userId:usercreated._id.toString(), });
-    }catch (error){
-        res.status(404).json({msg:"page not found"})
-    }
+  try {
+    await transporter.sendMail(mailOptions);
+  } catch (error) {
+    console.error("Error sending OTP email:", error);
+    throw new Error("Unable to send OTP email.");
+  }
 };
 
-const login = async(req,res) => {
-    try {
-        const {email ,password } =req.body;
+const storeOtp = (email, otp) => {
+  otpStore[email] = {
+    otp,
+    expiry: Date.now() + OTP_EXPIRY_TIME,
+  };
+};
 
-        const userExist =await User.findOne({email});
-        console.log(userExist);
-        if(!userExist){
-            return res.status(400).json({message : "Invalid Credentials"});
-        }
-        const user =await bcrypt.compare(password,userExist.password);
+const register = async (req, res) => {
+  try {
+    console.log(req.body);
+    const { username, email, phone, password } = req.body;
 
-        if(user){
-            res.status(200).json({msg : "Login Successful ", token : await userExist.genaratetoken(), userId:userExist._id.toString(), });
-        }else{
-            res.status(401).json({message:"Invalid Email or Password"});
-        }
+    const userExist = await User.findOne({ email });
 
-    } catch (error) {
-        res.status(500).json("internal server error");
+    if (userExist) {
+      console.log("User already exists");
+      return res.status(400).json({ msg: "Email already exists" });
     }
-}
 
-module.exports = {home , register,login };
+    const otp = generateOtp();
+    await sendOtpEmail(email, otp);
+    storeOtp(email, otp);
+
+    const saltRound = 10;
+    const hash_password = await bcrypt.hash(password, saltRound);
+
+    const usercreated = await User.create({
+      username,
+      email,
+      phone,
+      password: hash_password,
+    });
+
+    res.status(200).json({
+      msg: usercreated,
+      token: await usercreated.genaratetoken(),
+      userId: usercreated._id.toString(),
+    });
+  } catch (error) {
+    res.status(404).json({ msg: "page not found" });
+  }
+};
+
+const login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const userExist = await User.findOne({ email });
+    console.log(userExist);
+    if (!userExist) {
+      return res.status(400).json({ message: "Invalid Credentials" });
+    }
+    const user = await bcrypt.compare(password, userExist.password);
+
+    if (user) {
+      res.status(200).json({
+        msg: "Login Successful ",
+        token: await userExist.genaratetoken(),
+        userId: userExist._id.toString(),
+      });
+    } else {
+      res.status(401).json({ message: "Invalid Email or Password" });
+    }
+  } catch (error) {
+    res.status(500).json("internal server error");
+  }
+};
+
+module.exports = { home, register, login,sendOtpEmail };

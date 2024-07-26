@@ -1,12 +1,14 @@
 require("dotenv").config();
 const express = require("express");
 const app = express();
-const router = require("./Router/auth-router");
-const connectDb = require("./utils/db");
+const bodyParser = require('body-parser');
 const cors = require('cors');
+const router = require("./Router/auth-router"); // Adjust path as necessary
+const connectDb = require("./utils/db");
 
 app.use(cors());
 app.use(express.json());
+app.use(bodyParser.json());
 
 app.use("/",router);
 

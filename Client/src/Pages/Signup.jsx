@@ -1,53 +1,61 @@
-import React, { useState } from 'react';
-import './CSS/Signup.css';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import "./CSS/Signup.css";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { useNavigate } from "react-router-dom";
 
 const LoginSignup = () => {
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    password: '',
+    name: "",
+    email: "",
+    phone: "",
+    password: "",
     agree: false,
   });
-
+  const [otp, setOtp] = useState("");
+  const [showOtpField, setShowOtpField] = useState(false);
   const [errors, setErrors] = useState({});
-
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const validateField = (name, value) => {
     switch (name) {
-      case 'name':
-        return value.length <= 50 ? '' : 'Name should be max 50 characters long';
-      case 'email':
-        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? '' : '';
-      case 'phone':
-        return /^\d{0,10}$/.test(value) ? '' : 'Phone number should be max 10 digits';
-      case 'password':
-        return value.length <= 20 ? '' : 'Password should be max 20 characters long';
+      case "name":
+        return value.length <= 25
+          ? ""
+          : "Name should be max 25 characters long";
+      case "phone":
+        return /^\d{0,10}$/.test(value)
+          ? ""
+          : "Phone number should be max 10 digits";
+      case "password":
+        return value.length <= 20
+          ? ""
+          : "Password should be max 20 characters long";
       default:
-        return '';
+        return "";
     }
   };
 
+  const helperFunction = () => {
+    console.log("Hey, I am the helper function");
+  }
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    let newValue = type === 'checkbox' ? checked : value;
+    let newValue = type === "checkbox" ? checked : value;
 
     // Input limitations
     switch (name) {
-      case 'name':
-        newValue = newValue.replace(/[^a-zA-Z\s]/g, '').slice(0, 50);
+      case "name":
+        newValue = newValue.replace(/[^a-zA-Z\s]/g, "").slice(0, 25);
         break;
-      case 'email':
+      case "email":
         newValue = newValue.slice(0, 50);
         break;
-      case 'phone':
-        newValue = newValue.replace(/\D/g, '').slice(0, 10);
+      case "phone":
+        newValue = newValue.replace(/\D/g, "").slice(0, 10);
         break;
-      case 'password':
+      case "password":
         newValue = newValue.slice(0, 20);
         break;
       default:
@@ -59,7 +67,7 @@ const LoginSignup = () => {
       [name]: newValue,
     });
 
-    if (type !== 'checkbox') {
+    if (type !== "checkbox") {
       setErrors({
         ...errors,
         [name]: validateField(name, newValue),
@@ -69,8 +77,22 @@ const LoginSignup = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log("Hello")
+    setIsLoading(true);
+
+    console.log('Submitting form data:', formData);
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      toast.error("Invalid email address", {
+        position: "top-center",
+        autoClose: 5000,
+      });
+      setIsLoading(false);
+      return;
+    }
+
     const formErrors = Object.keys(formData).reduce((acc, key) => {
-      if (key !== 'agree') {
+      if (key !== "agree") {
         acc[key] = validateField(key, formData[key]);
       }
       return acc;
@@ -78,69 +100,169 @@ const LoginSignup = () => {
 
     setErrors(formErrors);
 
-    if (Object.values(formErrors).some(error => error !== '')) {
-      toast.error('Please correct the errors in the form', {
+    if (Object.values(formErrors).some((error) => error !== "")) {
+      toast.error("Please correct the errors in the form", {
         position: "top-center",
-        autoClose: 5000
+        autoClose: 5000,
       });
+      setIsLoading(false);
+      return;
     }
 
     if (!formData.agree) {
-      toast.error('Please agree to the terms and conditions',{
+      toast.error("Please agree to the terms and conditions", {
         position: "top-center",
-        autoClose: 5000
+        autoClose: 5000,
       });
+      setIsLoading(false);
+      return;
     }
 
     try {
-      const response = await fetch('https://e-commerce-lake-five-53.vercel.app/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-      const result = await response.json();
-      if (response.ok) {
-        toast.success('Registration successful!');
-        setTimeout(() => {
-          navigate('/');
-        }, 4000);
-      } else {
-        toast.error(`Registration failed: ${result.message || 'Unknown error'}`);
+      const response = await fetch(
+        "https://e-commerce-lake-five-53.vercel.app/register",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        toast.error(`Registration failed: ${errorData.message || "Unknown error"}`);
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
+
+      const result = await response.json();
+      toast.success("OTP sent to your email. Please enter it to complete registration.");
+      setShowOtpField(true);
     } catch (error) {
-      toast.error('Error: Unable to register');
-      console.error('Error:', error);
+      toast.error("Error: Unable to register");
+      console.error("Error:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleOtpSubmit = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(
+        "https://e-commerce-lake-five-53.vercel.app/verify-otp",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email: formData.email, otp }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        toast.error(errorData.msg || "OTP verification failed");
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      toast.success("OTP verified successfully! Registration completed.");
+      navigate("/login");
+    } catch (error) {
+      toast.error("Error during OTP verification");
+      console.error("Error:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleLoginClick = () => {
-    navigate('/Login'); 
+    navigate("/login");
   };
 
   return (
-    <div className='Loginsignup'>
+    <div className="Loginsignup">
       <div className="loginsignup-container">
         <h1>Sign Up</h1>
         <form className="loginsignup-fields" onSubmit={handleSubmit}>
-          <input type="text" name="name" placeholder='Your Name' value={formData.name} onChange={handleChange} required />
+          <input
+            type="text"
+            name="name"
+            placeholder="Your Name"
+            value={formData.name}
+            onChange={handleChange}
+            required
+          />
           {errors.name && <p className="error">{errors.name}</p>}
-          <input type="email" name="email" placeholder='Email Address' value={formData.email} onChange={handleChange} required />
+          <input
+            type="email"
+            name="email"
+            placeholder="Email Address"
+            value={formData.email}
+            onChange={handleChange}
+            required
+          />
           {errors.email && <p className="error">{errors.email}</p>}
-          <input type="tel" name="phone" placeholder='Phone No' value={formData.phone} onChange={handleChange} required />
+          <input
+            type="tel"
+            name="phone"
+            placeholder="Phone No"
+            value={formData.phone}
+            onChange={handleChange}
+            required
+          />
           {errors.phone && <p className="error">{errors.phone}</p>}
-          <input type="password" name="password" placeholder='Password' value={formData.password} onChange={handleChange} required />
+          <input
+            type="password"
+            name="password"
+            placeholder="Password"
+            value={formData.password}
+            onChange={handleChange}
+            required
+          />
           {errors.password && <p className="error">{errors.password}</p>}
+          {!showOtpField ? (
+            <button type="submit">
+              {isLoading ? "Submitting..." : "Sign Up"}
+            </button>
+          ) : (
+            <div>
+              <input
+                type="text"
+                name="otp"
+                placeholder="Enter OTP"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                required
+              />
+              <button
+                type="button"
+                onClick={handleOtpSubmit}
+                disabled={isLoading}
+              >
+                {isLoading ? "Verifying..." : "Verify OTP"}
+              </button>
+            </div>
+          )}
         </form>
         <div className="loginsignup-agree">
-          <input type="checkbox" name="agree" checked={formData.agree} onChange={handleChange} required />
+          <input
+            type="checkbox"
+            name="agree"
+            checked={formData.agree}
+            onChange={handleChange}
+            required
+          />
           <p>By continuing, I agree to the terms and conditions</p>
         </div>
-        <button type="button" onClick={handleSubmit}>Sign Up</button>
-        <p className="loginsignup-login">Already have an account? <span onClick={handleLoginClick}>Login here</span></p>
+        <p className="loginsignup-login">
+          Already have an account?{" "}
+          <span onClick={handleLoginClick}>Login here</span>
+        </p>
       </div>
-      <ToastContainer />
+      <ToastContainer /> {/* Ensure ToastContainer is included here */}
     </div>
   );
 };

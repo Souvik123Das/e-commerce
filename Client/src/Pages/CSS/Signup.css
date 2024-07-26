@@ -37,8 +37,8 @@
 .loginsignup-container button{
     width:580px;
     height:64px;
-    color:white;
-    background: blue;
+    color:black;
+    background: linear-gradient(135deg, #c8fe7d, #9ef0f0);;
     margin-top:30px;
     border:none;
     border-radius: 75px;
@@ -72,4 +72,57 @@
     font-size: 0.8em;
     margin-top: -10px;
     margin-bottom: 10px;
+  }
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  
+  /* Modal content */
+  .modal-content {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    max-width: 400px;
+    width: 100%;
+    animation: slide-down 0.3s ease-out;
+  }
+  
+  /* Heading */
+  .modal-content h2 {
+    margin-top: 0;
+    font-size: 1.5rem;
+    color: #333;
+  }
+  
+  /* Paragraph */
+  .modal-content p {
+    font-size: 1rem;
+    color: #666;
+    margin: 20px 0;
+  }
+  
+  /* Button */
+  .modal-button {
+    background: #007bff;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  
+  .modal-button:hover {
+    background: #0056b3;
   }

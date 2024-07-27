@@ -108,7 +108,7 @@ const LoginSignup = () => {
 
     try {
       const response = await fetch(
-        "https://e-commerce-lake-five-53.vercel.app/register",
+        "http://localhost:5000/register",
         {
           method: "POST",
           headers: {

@@ -1,8 +1,18 @@
 const crypto = require('crypto');
 const postmark = require('postmark');
+const nodemailer = require('nodemailer');
 const OTP = require('../models/otp-model');
 
-const CLIENT = new postmark.ServerClient(process.env.POSTMARK_API_KEY); // Your Postmark API key
+// const CLIENT = new postmark.ServerClient(process.env.POSTMARK_API_KEY); // Your Postmark API key
+const transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
+  auth: {
+      user: process.env.USER_MAIL,
+      pass: process.env.USER_PASS
+  }
+});
 
 const generateOtp = () => {
   return crypto.randomInt(100000, 999999);
@@ -20,10 +30,10 @@ const sendTestEmail = async (email) => {
   console.log(result);
 
   const mailOptions = {
-    From: 'bibhab.mukhopadhyay.21@aot.edu.in', // Your Postmark verified sender email
-    To: email,
-    Subject: 'Your OTP Code',
-    TextBody: `Hello,
+    from: 'bibhabindia@gmail.com', // Your Postmark verified sender email
+    to: email,
+    subject: 'Your OTP Code',
+    text: `Hello,
 
               Your One-Time Password (OTP) for Skill Verse is: ${otp}
 
@@ -33,7 +43,7 @@ const sendTestEmail = async (email) => {
 
               Best,
               The Skill Verse Team`,
-    HtmlBody: `<div style="font-family: Helvetica,Arial,sans-serif;max-width:700px;width: 100%;margin: 0 auto;overflow:auto;line-height:2;background-color:#f6fff8;">
+    html: `<div style="font-family: Helvetica,Arial,sans-serif;max-width:700px;width: 100%;margin: 0 auto;overflow:auto;line-height:2;background-color:#f6fff8;">
               <div style="margin:20px auto;width:90%;padding:20px 0;max-width:600px;">
                   <div style="border-bottom:1px solid #eee; background-color: #e59500; border-radius: 5px; text-align: center; padding: 10;">
                       <a href="" style="font-size:1.8em;color: black;text-decoration:none;font-weight:800;">Your Skillverse OTP</a>
@@ -73,7 +83,7 @@ const sendTestEmail = async (email) => {
   };
 
   try {
-    await CLIENT.sendEmail(mailOptions);
+    await transporter.sendMail(mailOptions);
     console.log('OTP email sent successfully');
   } catch (error) {
     console.error('Error sending OTP email:', error);

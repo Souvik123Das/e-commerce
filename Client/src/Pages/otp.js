@@ -20,11 +20,11 @@ const OtpVerification = () => {
         body: JSON.stringify({ email, otp }),
       });
       const result = await response.json();
-
+      console.log(result);
       if (response.ok) {
         toast.success('OTP verified successfully!');
         setTimeout(() => {
-          navigate('/login'); // Redirect to login or another page after successful verification
+          navigate('/'); // Redirect to login or another page after successful verification
         }, 2000);
       } else {
         toast.error(result.msg || 'Failed to verify OTP');

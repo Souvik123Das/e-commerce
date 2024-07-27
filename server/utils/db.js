@@ -1,20 +1,16 @@
-const mongoose = require("mongoose");
+// utils/dbconnect.js
+const mongoose = require('mongoose');
 
-
-// const URI ="mongodb://127.0.0.1:27017/mern_admin";
-// mongoose.connect(URI);
-
-const URI =process.env.MONGODB_URI;
-
-
-const connectDb=async()=>{
-    try{
-        await mongoose.connect(URI);
-        console.log('connection successful');
-    } catch(error){
-        console.error("database connection failed");
-        process.exit(0);
-    }
+const connectToDatabase = async () => {
+  try {
+    await mongoose.connect(process.env.MONGODB_URI, {
+      
+    });
+    console.log('Connected to the database');
+  } catch (error) {
+    console.error('Error connecting to the database:', error);
+    throw error;
+  }
 };
 
-module.exports = connectDb;
+module.exports = connectToDatabase ;

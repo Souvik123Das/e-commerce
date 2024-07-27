@@ -2,7 +2,9 @@ const express = require("express");
 const router = express.Router();
 const authControllers = require("../Controllers/auth.controller");
 const verifyOtpHandler = require('../Mailer/verifyOtp');
-const { generateOtp, sendOtpEmail, storeOtp } = require('../Mailer/otpService');
+const { generateOtp, storeOtp } = require('../Mailer/otpService');
+const { sendOtpEmail } = require('../Controllers/auth.controller');
+const sendOTP = require('../Mailer/sendotp');
 
 // Home route
 router.route("/").post(authControllers.home);
@@ -25,6 +27,17 @@ router.post('/register', async (req, res) => {
         res.status(500).json({ msg: 'Internal server error' });
     }
 });
+
+// router.post('/send-otp-email', async (req, res) => {
+//     const { email } = req.body;
+//     try {
+//       await sendOtpEmail(email);
+//       res.status(200).send({ message: 'OTP sent successfully' });
+//     } catch (error) {
+//       res.status(500).send({ message: 'Error sending OTP', error: error.message });
+//     }
+//   });
+router.post('/send-otp-email',sendOTP );
 
 // Login route
 router.route("/login").post(authControllers.login);

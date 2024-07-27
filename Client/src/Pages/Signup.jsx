@@ -3,6 +3,7 @@ import "./CSS/Signup.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
+import OtpVerification from "./otp";
 
 const LoginSignup = () => {
   const [formData, setFormData] = useState({
@@ -21,30 +22,20 @@ const LoginSignup = () => {
   const validateField = (name, value) => {
     switch (name) {
       case "name":
-        return value.length <= 25
-          ? ""
-          : "Name should be max 25 characters long";
+        return value.length <= 25 ? "" : "Name should be max 25 characters long";
       case "phone":
-        return /^\d{0,10}$/.test(value)
-          ? ""
-          : "Phone number should be max 10 digits";
+        return /^\d{0,10}$/.test(value) ? "" : "Phone number should be max 10 digits";
       case "password":
-        return value.length <= 20
-          ? ""
-          : "Password should be max 20 characters long";
+        return value.length <= 20 ? "" : "Password should be max 20 characters long";
       default:
         return "";
     }
   };
 
-  const helperFunction = () => {
-    console.log("Hey, I am the helper function");
-  }
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     let newValue = type === "checkbox" ? checked : value;
 
-    // Input limitations
     switch (name) {
       case "name":
         newValue = newValue.replace(/[^a-zA-Z\s]/g, "").slice(0, 25);
@@ -77,10 +68,7 @@ const LoginSignup = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Hello")
     setIsLoading(true);
-
-    console.log('Submitting form data:', formData);
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       toast.error("Invalid email address", {
@@ -136,8 +124,7 @@ const LoginSignup = () => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const result = await response.json();
-      toast.success("OTP sent to your email. Please enter it to complete registration.");
+      await sendOtpEmail(formData.email);
       setShowOtpField(true);
     } catch (error) {
       toast.error("Error: Unable to register");
@@ -147,11 +134,39 @@ const LoginSignup = () => {
     }
   };
 
+  const sendOtpEmail = async (email) => {
+    try {
+      const response = await fetch(
+        "http://localhost:5000/send-otp-email",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email }),
+        }
+      );
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        toast.error(`Error sending OTP: ${errorData.message || "Unknown error"}`);
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+  
+      const result = await response.json();
+      toast.success("OTP sent successfully!");
+    } catch (error) {
+      toast.error("Error: Unable to send OTP");
+      console.error("Error:", error);
+    }
+  };
+  
   const handleOtpSubmit = async () => {
     setIsLoading(true);
     try {
+      // <OtpVerification />
       const response = await fetch(
-        "https://e-commerce-lake-five-53.vercel.app/verify-otp",
+        "http://localhost:5000/verify-otp",
         {
           method: "POST",
           headers: {
@@ -166,10 +181,11 @@ const LoginSignup = () => {
         toast.error(errorData.msg || "OTP verification failed");
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-
-      const result = await response.json();
+      
       toast.success("OTP verified successfully! Registration completed.");
-      navigate("/login");
+      setTimeout(() => {
+        navigate('/');
+      }, 4000);
     } catch (error) {
       toast.error("Error during OTP verification");
       console.error("Error:", error);

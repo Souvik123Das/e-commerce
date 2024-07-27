@@ -108,7 +108,7 @@ const LoginSignup = () => {
 
     try {
       const response = await fetch(
-        "http://localhost:5000/register",
+        "https://e-commerce-backend-kappa-eosin.vercel.app/register",
         {
           method: "POST",
           headers: {
@@ -137,7 +137,7 @@ const LoginSignup = () => {
   const sendOtpEmail = async (email) => {
     try {
       const response = await fetch(
-        "http://localhost:5000/send-otp-email",
+        "https://e-commerce-backend-kappa-eosin.vercel.app/send-otp-email",
         {
           method: "POST",
           headers: {
@@ -166,7 +166,7 @@ const LoginSignup = () => {
     try {
       // <OtpVerification />
       const response = await fetch(
-        "http://localhost:5000/verify-otp",
+        "https://e-commerce-backend-kappa-eosin.vercel.app/verify-otp",
         {
           method: "POST",
           headers: {

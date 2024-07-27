@@ -23,7 +23,7 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('https://e-commerce-lake-five-53.vercel.app/login', {
+      const response = await fetch('https://e-commerce-backend-kappa-eosin.vercel.app/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

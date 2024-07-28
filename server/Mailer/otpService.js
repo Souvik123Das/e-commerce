@@ -3,6 +3,9 @@ const postmark = require('postmark');
 const nodemailer = require('nodemailer');
 const OTP = require('../models/otp-model');
 
+const otpStore = {};
+const OTP_EXPIRY_TIME = 5 * 60 * 1000;
+
 // const CLIENT = new postmark.ServerClient(process.env.POSTMARK_API_KEY); // Your Postmark API key
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
@@ -17,13 +20,15 @@ const transporter = nodemailer.createTransport({
 const generateOtp = () => {
   return crypto.randomInt(100000, 999999);
 };
+const sendTestEmail = async (email,otp) => {
 
-const sendTestEmail = async (email) => {
-  const otp = generateOtp();
+
+  // const otp = generateOtp();
   const otpInstance = new OTP({
     email,
     otp
   });
+  await OTP.deleteOne({ email });
 
   // Save the OTP instance to the database
   const result = await otpInstance.save();
@@ -91,6 +96,13 @@ const sendTestEmail = async (email) => {
   }
 };
 
+const storeOtp = (email, otp) => {
+  otpStore[email] = {
+    otp,
+    expiry: Date.now() + OTP_EXPIRY_TIME,
+  };
+};
+
 const verifyOtp = async (email, otp) => {
   try {
     const otpDocument = await OTP.findOne({ email });
@@ -116,4 +128,5 @@ module.exports = {
   generateOtp,
   sendTestEmail,
   verifyOtp,
+  storeOtp
 };

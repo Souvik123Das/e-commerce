@@ -2,6 +2,7 @@ const User = require("../models/user-model");
 const bcrypt = require("bcryptjs");
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
+const { verifyOtp } = require('../Mailer/otpService');
 
 const home = async (req, res) => {
   try {
@@ -11,78 +12,82 @@ const home = async (req, res) => {
   }
 };
 
-const otpStore = {};
-const OTP_EXPIRY_TIME = 5 * 60 * 1000; // 5 minutes in milliseconds
+// const otpStore = {};
+// const OTP_EXPIRY_TIME = 5 * 60 * 1000; // 5 minutes in milliseconds
 
-const generateOtp = () => crypto.randomInt(100000, 999999); // 6-digit OTP
+// const generateOtp = () => crypto.randomInt(100000, 999999); // 6-digit OTP
 
-const sendOtpEmail = async (email, otp) => {
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
+// const sendOtpEmail = async (email, otp) => {
+//   const transporter = nodemailer.createTransport({
+//     service: "gmail",
+//     auth: {
+//       user: process.env.EMAIL_USER,
+//       pass: process.env.EMAIL_PASS,
+//     },
+//   });
 
-  const mailOptions = {
-    from: process.env.EMAIL_USER,
-    to: email,
-    subject: "Your OTP Code",
-    text: `Your OTP code is ${otp}. It is valid for 5 minutes.`,
-  };
+//   const mailOptions = {
+//     from: process.env.EMAIL_USER,
+//     to: email,
+//     subject: "Your OTP Code",
+//     text: `Your OTP code is ${otp}. It is valid for 5 minutes.`,
+//   };
 
-  try {
-    await transporter.sendMail(mailOptions);
-  } catch (error) {
-    console.error("Error sending OTP email:", error);
-    throw new Error("Unable to send OTP email.");
-  }
-};
+//   try {
+//     await transporter.sendMail(mailOptions);
+//   } catch (error) {
+//     console.error("Error sending OTP email:", error);
+//     throw new Error("Unable to send OTP email.");
+//   }
+// };
 
-const storeOtp = (email, otp) => {
-  otpStore[email] = {
-    otp,
-    expiry: Date.now() + OTP_EXPIRY_TIME,
-  };
-};
+// const storeOtp = (email, otp) => {
+//   otpStore[email] = {
+//     otp,
+//     expiry: Date.now() + OTP_EXPIRY_TIME,
+//   };
+// };
 
 const register = async (req, res) => {
   try {
     console.log(req.body);
-    const { username, email, phone, password } = req.body;
+    const { username, email, phone, password, otp } = req.body;
 
-    const userExist = await User.findOne({ email });
+    const isOtpValid = await verifyOtp(email, otp);
 
-    if (userExist) {
+    if (!isOtpValid) {
+      console.log("Invalid OTP");
+      return res.status(400).json({ msg: "Invalid OTP" });
+    }
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
       console.log("User already exists");
       return res.status(400).json({ msg: "Email already exists" });
     }
 
-    const otp = generateOtp();
-    await sendOtpEmail(email, otp);
-    storeOtp(email, otp);
-
     const saltRound = 10;
     const hash_password = await bcrypt.hash(password, saltRound);
 
-    const usercreated = await User.create({
+    const userCreated = await User.create({
       username,
       email,
       phone,
       password: hash_password,
     });
 
-    res.status(200).json({
-      msg: usercreated,
-      token: await usercreated.genaratetoken(),
-      userId: usercreated._id.toString(),
+    const token = await userCreated.genaratetoken();
+
+    res.status(201).json({
+      msg: "User registered successfully",
+      token: token,
+      userId: userCreated._id.toString(),
     });
   } catch (error) {
-    res.status(404).json({ msg: "page not found" });
+    console.error(error);
+    res.status(500).json({ msg: "Internal server error" });
   }
 };
-
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -108,4 +113,4 @@ const login = async (req, res) => {
   }
 };
 
-module.exports = { home, register, login,sendOtpEmail };
+module.exports = { home, register, login };

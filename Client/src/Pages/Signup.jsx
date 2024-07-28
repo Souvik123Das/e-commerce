@@ -108,7 +108,7 @@ const LoginSignup = () => {
 
     try {
       const response = await fetch(
-        "https://e-commerce-backend-kappa-eosin.vercel.app/register",
+        "http://localhost:5000/register",
         {
           method: "POST",
           headers: {
@@ -124,7 +124,8 @@ const LoginSignup = () => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      await sendOtpEmail(formData.email);
+      // await sendTestEmail(formData.email);
+      toast.success(" OTP sent to your email.");
       setShowOtpField(true);
     } catch (error) {
       toast.error("Error: Unable to register");
@@ -134,39 +135,42 @@ const LoginSignup = () => {
     }
   };
 
-  const sendOtpEmail = async (email) => {
+  const sendTestEmail = async (email) => {
     try {
-      const response = await fetch(
-        "https://e-commerce-backend-kappa-eosin.vercel.app/send-otp-email",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ email }),
-        }
-      );
-  
-      if (!response.ok) {
-        const errorData = await response.json();
-        toast.error(`Error sending OTP: ${errorData.message || "Unknown error"}`);
-        throw new Error(`HTTP error! status: ${response.status}`);
+    const response = await fetch(
+      "http://localhost:5000/send-otp-email",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: formData.email }),
       }
-  
-      const result = await response.json();
-      toast.success("OTP sent successfully!");
-    } catch (error) {
-      toast.error("Error: Unable to send OTP");
-      console.error("Error:", error);
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      toast.error(`Error sending OTP: ${errorData.message || "Unknown error"}`);
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
-  };
+
+    toast.success("OTP sent to your email.");
+    setShowOtpField(true);
+  } catch (error) {
+    toast.error("Error: Unable to send OTP");
+    console.error("Error:", error);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
   
   const handleOtpSubmit = async () => {
     setIsLoading(true);
     try {
       // <OtpVerification />
       const response = await fetch(
-        "https://e-commerce-backend-kappa-eosin.vercel.app/verify-otp",
+        "http://localhost:5000/verify-otp",
         {
           method: "POST",
           headers: {

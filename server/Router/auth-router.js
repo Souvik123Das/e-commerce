@@ -2,8 +2,8 @@ const express = require("express");
 const router = express.Router();
 const authControllers = require("../Controllers/auth.controller");
 const verifyOtpHandler = require('../Mailer/verifyOtp');
-const { generateOtp, storeOtp } = require('../Mailer/otpService');
-const { sendOtpEmail } = require('../Controllers/auth.controller');
+const { generateOtp, storeOtp,sendTestEmail } = require('../Mailer/otpService');
+// const { sendOtpEmail } = require('../Controllers/auth.controller');
 const sendOTP = require('../Mailer/sendotp');
 
 // Home route
@@ -19,7 +19,7 @@ router.post('/register', async (req, res) => {
 
     try {
         const otp = generateOtp();
-        await sendOtpEmail(email, otp);
+        await sendTestEmail(email, otp);
         storeOtp(email, otp);
         res.status(200).json({ msg: 'OTP sent successfully' });
     } catch (error) {

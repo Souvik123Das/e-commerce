@@ -14,6 +14,8 @@
     color:black;
     font-size: 46px;
     font-weight:700;
+    color: #d90fd3;
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
 }
 .footer-links {
     display:flex;
@@ -28,7 +30,7 @@
 .footer-social-icon{
     display:flex;
     gap:20px;
-    
+    cursor: pointer;
 }
 .footer-icons-container{
     padding:10px;
